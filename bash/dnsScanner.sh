@@ -153,11 +153,12 @@ function fncShowProgress {
 # Function fncCheckIPList
 # Check Subnet
 function fncCheckIPList {
-  local ipList resultFile domain dnsTypeLocal
+  local ipList resultFile domain dnsTypeLocal randomSubdomainFlagLocal queryDomain randLabel
   ipList="${1}"
   resultFile="${3}"
   domain="${4}"
   dnsTypeLocal="${5:-TXT}"
+  randomSubdomainFlagLocal="${6:-0}"
 
   # set proper command for linux
   if command -v timeout >/dev/null 2>&1; 
@@ -175,7 +176,18 @@ function fncCheckIPList {
   fi
   for ip in ${ipList}
     do
-      result=$("$timeoutCommand" 1 dig +short @"$ip" "$domain" "$dnsTypeLocal")
+      queryDomain="$domain"
+      if [[ "$randomSubdomainFlagLocal" == "1" ]]; then
+        # generate a random label to avoid DNS caching; use /dev/urandom when available, fall back to $RANDOM
+        if command -v tr >/dev/null 2>&1; then
+          randLabel=$(tr -dc 'a-z0-9' </dev/urandom 2>/dev/null | head -c 8)
+        fi
+        if [[ -z "$randLabel" ]]; then
+          randLabel="${RANDOM}${RANDOM}"
+        fi
+        queryDomain="${randLabel}.${domain}"
+      fi
+      result=$("$timeoutCommand" 1 dig +short @"$ip" "$queryDomain" "$dnsTypeLocal")
       if [[ "$result" != "" ]]; then
         echo -e "$ip" 
         echo -e "$ip" >> "$resultFile" 
@@ -215,6 +227,7 @@ function fncMainCFFindSubnet {
   resultFile="${3}"
   subnetsFile="${4}"
   local dnsTypeLocal="${5:-TXT}"
+  local randomSubdomainFlagLocal="${6:-0}"
 
   if [[ "$subnetsFile" == "NULL" ]] 
   then
@@ -271,7 +284,7 @@ function fncMainCFFindSubnet {
       ipList=$(fncSubnetToIP "$breakedSubnet")
       tput cuu1; tput ed # rewrites Parallel's bar
       #echo -e "${RED}$progressBar${NC}"
-      parallel --ll --bar -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$domain" ::: "$dnsTypeLocal"
+      parallel --ll --bar -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$domain" ::: "$dnsTypeLocal" ::: "$randomSubdomainFlagLocal"
       killall v2ray > /dev/null 2>&1
       passedIpsCount=$(( passedIpsCount+1 ))
     done
@@ -291,16 +304,19 @@ function fncUsage {
     [ -f|--file <string> ]
     [ -d|--domain <string> ]
     [ -t|--type <string> ]
+    [ -r|--random-subdomain ]
     [ -h|--help ]\n
-  DNS type examples: A, AAAA, NS, TXT, MX (default: TXT)\n"
+  DNS type examples: A, AAAA, NS, TXT, MX (default: TXT)
+  -r, --random-subdomain : prepend a random label to the domain (e.g. <random>.example.com) to avoid DNS caching when you have a wildcard rule\n"
   exit 2
 }
 # End of Function fncUsage
 
 threads="4"
 dnsType="TXT"
+randomSubdomainFlag="0"
 
-parsedArguments=$(getopt -a -n dnsScanner -o p:f:d:t:h --long thread:,file:,domain:,type:,help -- "$@")
+parsedArguments=$(getopt -a -n dnsScanner -o p:f:d:t:hr --long thread:,file:,domain:,type:,help,random-subdomain -- "$@")
 
 eval set -- "$parsedArguments"
 while :
@@ -310,6 +326,7 @@ do
     -f|--file) subnetIPFile="$2" ; shift 2 ;;
     -d|--domain) domain="$2" ; shift 2 ;;
     -t|--type) dnsType="$2" ; shift 2 ;;
+    -r|--random-subdomain) randomSubdomainFlag="1" ; shift ;;
     -h|--help) fncUsage ;;
     --) shift; break ;;
     *) echo "Unexpected option: $1 is not acceptable"
@@ -349,4 +366,4 @@ export NC='\033[0m'
 fncCreateDir "${resultDir}"
 echo "" > "$resultFile"
 
-fncMainCFFindSubnet "$threads" "$progressBar" "$resultFile" "$subnetIPFile" "$dnsType"
+fncMainCFFindSubnet "$threads" "$progressBar" "$resultFile" "$subnetIPFile" "$dnsType" "$randomSubdomainFlag"

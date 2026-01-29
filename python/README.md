@@ -461,11 +461,6 @@ python dnsscanner_tui.py
 
 This project is licensed under the MIT License.
 
-## 👨‍💻 Author
-
-**Morteza Bashsiz**
-- GitHub: [@hossein-mohseni](https://github.com/hossein-mohseni)
-
 ## 🙏 Acknowledgments
 
 - Built with [Textual](https://github.com/Textualize/textual) by Textualize

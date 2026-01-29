@@ -632,12 +632,12 @@ class DNSScannerTUI(App):
         # Start Screen
         with Container(id="start-screen"):
             with Vertical(id="start-form"):
-                yield Static("[b cyan]🔍 DNS Scanner Configuration[/b cyan]", id="start-title")
+                yield Static("[b cyan]DNS Scanner Configuration[/b cyan]", id="start-title")
                 
                 with Horizontal(classes="form-row"):
                     yield Label("CIDR File:", classes="form-label")
                     yield Input(placeholder="Enter path or click Browse", id="input-file", classes="form-input")
-                    yield Button("📂 Browse", id="browse-btn", variant="primary")
+                    yield Button("Browse", id="browse-btn", variant="primary")
                 
                 with Container(id="file-browser-container"):
                     yield DirectoryTree(".", id="file-browser")
@@ -668,8 +668,8 @@ class DNSScannerTUI(App):
                     yield Checkbox("Enable Proxy Test", id="input-slipstream")
                 
                 with Horizontal(id="start-buttons"):
-                    yield Button("🚀 Start Scan", id="start-scan-btn", variant="success")
-                    yield Button("🛑 Exit", id="exit-btn", variant="error")
+                    yield Button("Start Scan", id="start-scan-btn", variant="success")
+                    yield Button("Exit", id="exit-btn", variant="error")
         
         # Scan Screen (initially hidden)
         with Container(id="scan-screen"):
@@ -684,8 +684,8 @@ class DNSScannerTUI(App):
             with Horizontal(id="controls"):
                 yield Button("⏸  Pause", id="pause-btn", variant="warning")
                 yield Button("▶  Resume", id="resume-btn", variant="primary")
-                yield Button("💾 Save Results", id="save-btn", variant="success")
-                yield Button("🛑 Quit", id="quit-btn", variant="error")
+                yield Button("Save Results", id="save-btn", variant="success")
+                yield Button("Quit", id="quit-btn", variant="error")
         
         yield Footer()
 
@@ -1273,9 +1273,9 @@ class DNSScannerTUI(App):
             elif proxy_status == "Failed":
                 proxy_str = "[red]✗ Failed[/red]"
             elif proxy_status == "Testing":
-                proxy_str = "[yellow]⏳ Testing...[/yellow]"
+                proxy_str = "[yellow]Testing...[/yellow]"
             elif proxy_status == "Pending":
-                proxy_str = "[dim]⏳ Queued[/dim]"
+                proxy_str = "[dim]Queued[/dim]"
             else:
                 proxy_str = "[dim]N/A[/dim]"
             
@@ -1325,9 +1325,9 @@ class DNSScannerTUI(App):
                 elif proxy_status == "Failed":
                     proxy_str = "[red]✗ Failed[/red]"
                 elif proxy_status == "Testing":
-                    proxy_str = "[yellow]⏳ Testing...[/yellow]"
+                    proxy_str = "[yellow]Testing...[/yellow]"
                 elif proxy_status == "Pending":
-                    proxy_str = "[dim]⏳ Queued[/dim]"
+                    proxy_str = "[dim]Queued[/dim]"
                 else:
                     proxy_str = "[dim]N/A[/dim]"
                 
